@@ -10,7 +10,7 @@ from google.api_core import exceptions
 from gtts import gTTS
 
 # --- Configuración de Versión ---
-APP_VERSION = "2026.04.002"
+APP_VERSION = "2026.04.003"
 
 # --- Configuración de la Página ---
 st.set_page_config(page_title="Pokedex IA Master", page_icon="🎴", layout="wide")
@@ -165,18 +165,37 @@ def text_to_speech_full(data, fun_fact):
 SYSTEM_PROMPT = "Analiza Pokémon. Responde SOLO JSON: {\"pokemon_name\": \"...\", \"confidence\": 0.0, \"detected_color\": \"#hex\", \"fun_fact\": \"...\"}"
 
 def identify_pokemon(image):
-    models = ['models/gemini-2.0-flash-lite', 'models/gemini-2.0-flash', 'models/gemini-1.5-flash']
+    # Lista extendida de modelos confirmados en 2026
+    models = [
+        'models/gemini-2.0-flash-lite', 
+        'models/gemini-2.0-flash',
+        'models/gemini-2.5-flash',
+        'models/gemini-1.5-flash'
+    ]
+    
     image.thumbnail((300, 300))
     img_byte_arr = io.BytesIO()
-    image.save(img_byte_arr, format='JPEG', quality=60)
+    image.save(img_byte_arr, format='JPEG', quality=65)
     img_bytes = img_byte_arr.getvalue()
+    
+    last_err = "No se pudo conectar con ningún modelo."
     for m in models:
         try:
             model = genai.GenerativeModel(m)
-            response = model.generate_content([SYSTEM_PROMPT, {"mime_type": "image/jpeg", "data": img_bytes}])
-            if response.text: return json.loads(response.text.replace('```json', '').replace('```', '').strip())
-        except: continue
-    return {"error": "quota", "message": "Error de conexión/cuota."}
+            response = model.generate_content([
+                SYSTEM_PROMPT, 
+                {"mime_type": "image/jpeg", "data": img_bytes}
+            ])
+            if response.text:
+                return json.loads(response.text.replace('```json', '').replace('```', '').strip())
+        except exceptions.ResourceExhausted:
+            last_err = f"Cuota agotada en {m}. Espera 60s."
+            continue
+        except Exception as e:
+            last_err = f"Error en {m}: {str(e)}"
+            continue
+            
+    return {"error": "quota", "message": last_err}
 
 # --- INTERFAZ ---
 st.title("📟 Pokedex IA Master")
