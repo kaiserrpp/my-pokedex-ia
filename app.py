@@ -15,90 +15,50 @@ st.set_page_config(page_title="Pokedex IA Master", page_icon="🎴", layout="wid
 if "pokedex_history" not in st.session_state:
     st.session_state.pokedex_history = []
 
-# --- Estilos CSS de la Carta Pokémon ---
+# --- Estilos CSS de Pokedex Física ---
 def apply_card_styles(color="#F7D02C"):
     st.markdown(f"""
         <style>
-        .main {{
-            background-color: #f0f2f6;
+        .stApp {{
+            background-color: #dc0a2d; /* Rojo Pokedex */
         }}
+        .main {{
+            background-image: radial-gradient(#ff1f1f 2px, transparent 2px);
+            background-size: 30px 30px;
+        }}
+        /* Contenedor de la Carta Pokémon */
         .pokemon-tcg-card {{
-            background: linear-gradient(135deg, {color} 0%, #ffd700 50%, {color} 100%);
-            padding: 15px;
-            border-radius: 18px;
-            width: 380px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            border: 8px solid #f8d030;
+            background: linear-gradient(135deg, {color} 0%, #ffffff 50%, {color} 100%);
+            padding: 12px;
+            border-radius: 10px;
+            width: 340px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            border: 6px solid #333;
             margin: auto;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #333;
         }}
         .inner-card {{
             background-color: #fffde7;
-            border-radius: 10px;
-            padding: 10px;
-            border: 2px solid #b8860b;
+            border: 2px solid #555;
+            padding: 8px;
         }}
-        .card-header {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.4rem;
-            margin-bottom: 5px;
-        }}
-        .hp-text {{
-            color: #e53935;
-            font-size: 1.1rem;
-        }}
-        .image-frame {{
-            background: #fff;
-            border: 4px solid #d3d3d3;
-            margin: 5px 0;
-            text-align: center;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-        }}
-        .stats-bar {{
-            background: linear-gradient(to right, #e0e0e0, #f5f5f5);
-            font-size: 0.75rem;
-            padding: 3px;
-            text-align: center;
-            border: 1px solid #ccc;
-            font-style: italic;
-            margin-bottom: 10px;
-        }}
-        .ability-section {{
-            margin-top: 10px;
-            padding: 5px;
-        }}
-        .ability-name {{
-            font-weight: bold;
-            font-size: 1rem;
-            border-bottom: 1px solid #ccc;
-            display: block;
-        }}
-        .ability-desc {{
-            font-size: 0.85rem;
-            line-height: 1.2;
-            margin-top: 5px;
-            display: block;
-        }}
-        .card-footer {{
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            margin-top: 15px;
-            font-weight: bold;
-        }}
-        .type-icon {{
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 5px;
+        /* Pantalla de la Pokedex */
+        .pokedex-screen {{
+            background-color: #dedede;
+            border: 15px solid #333;
+            border-radius: 10px 10px 10px 50px;
+            padding: 20px;
+            box-shadow: inset 5px 5px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
         }}
         </style>
     """, unsafe_allow_html=True)
+
+# --- Lógica de Audio Optimizada ---
+def play_audio(audio_fp):
+    """Reproduce audio con un método más compatible con móviles."""
+    audio_bytes = audio_fp.getvalue()
+    st.audio(audio_bytes, format="audio/mpeg")
 
 # --- Colores de Tipos ---
 TYPE_COLORS = {
