@@ -10,9 +10,9 @@ from google.api_core import exceptions
 from gtts import gTTS
 
 # --- Configuración de Versión ---
-APP_VERSION = "2026.04.006"
+APP_VERSION = "2026.04.007"
 
-# --- Colores de Tipos (Definidos al inicio para evitar NameError) ---
+# --- Colores de Tipos ---
 TYPE_COLORS = {
     "normal": "#A8A77A", "fire": "#EE8130", "water": "#6390F0", "electric": "#F7D02C",
     "grass": "#7AC74C", "ice": "#96D9D6", "fighting": "#C22E28", "poison": "#A040A0",
