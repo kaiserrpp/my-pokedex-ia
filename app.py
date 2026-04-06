@@ -15,43 +15,35 @@ st.set_page_config(page_title="Pokedex IA Master", page_icon="🎴", layout="wid
 if "pokedex_history" not in st.session_state:
     st.session_state.pokedex_history = []
 
+# --- Configuración de Versión ---
+APP_VERSION = "2026.04.001"
+
 # --- Estilos CSS de Pokedex Física ---
 def apply_card_styles(color="#F7D02C"):
     st.markdown(f"""
         <style>
+        /* Forzamos el fondo rojo en toda la app */
         .stApp {{
-            background-color: #dc0a2d; /* Rojo Pokedex */
+            background-color: #dc0a2d !important;
+        }}
+        [data-testid="stSidebar"] {{
+            background-color: #af0924 !important;
         }}
         .main {{
             background-image: radial-gradient(#ff1f1f 2px, transparent 2px);
             background-size: 30px 30px;
         }}
-        /* Contenedor de la Carta Pokémon */
-        .pokemon-tcg-card {{
-            background: linear-gradient(135deg, {color} 0%, #ffffff 50%, {color} 100%);
-            padding: 12px;
-            border-radius: 10px;
-            width: 340px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            border: 6px solid #333;
-            margin: auto;
-            color: #333;
-        }}
-        .inner-card {{
-            background-color: #fffde7;
-            border: 2px solid #555;
-            padding: 8px;
-        }}
-        /* Pantalla de la Pokedex */
-        .pokedex-screen {{
-            background-color: #dedede;
-            border: 15px solid #333;
-            border-radius: 10px 10px 10px 50px;
-            padding: 20px;
-            box-shadow: inset 5px 5px 15px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
+        /* Versión en el footer */
+        .version-footer {{
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: white;
+            font-size: 0.8rem;
+            opacity: 0.7;
         }}
         </style>
+        <div class="version-footer">v{APP_VERSION}</div>
     """, unsafe_allow_html=True)
 
 # --- Lógica de Audio Optimizada ---
