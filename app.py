@@ -151,6 +151,7 @@ def text_to_speech_full(data, fun_fact):
         tts = gTTS(text=text, lang='es')
         fp = io.BytesIO()
         tts.write_to_fp(fp)
+        fp.seek(0) # RESETEAR PUNTERO PARA LECTURA
         return fp
     except: return None
 

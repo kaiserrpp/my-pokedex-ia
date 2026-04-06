@@ -1,0 +1,19 @@
+# Claves y Secretos
+google_api_key.txt
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Streamlit
+.streamlit/
+! .streamlit/config.toml
+
+# Otros
+debug/
+unit_tests/
+estado app con Gemini.txt
