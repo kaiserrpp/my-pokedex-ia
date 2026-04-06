@@ -43,14 +43,10 @@ TYPE_TRANSLATIONS = {
     "steel": "Acero", "fairy": "Hada", "desconocido": "Desconocido"
 }
 
-SYSTEM_PROMPT = "Analiza Pokémon. Responde SOLO JSON: {\"pokemon_name\": \"...\", \"confidence\": 0.0, \"detected_color\": \"#hex\", \"fun_fact\": \"...\"}"
+SYSTEM_PROMPT = "Analiza la imagen. Si es un Pokémon, responde SOLO JSON con: {\"pokemon_name\": \"[nombre del pokemon]\" (en español si es posible), \"confidence\": 0.0 (confianza de 0.0 a 1.0), \"detected_color\": \"#hex\" (color dominante del pokemon), \"fun_fact\": \"[un dato curioso del pokemon]\" (en español)}. Si NO es un Pokémon, responde SOLO JSON con: {\"error\": \"no_pokemon\", \"message\": \"La imagen no contiene un Pokémon detectable.\"}"
 
 def load_api_key():
-    try:
-        with open("../google_api_key.txt", "r") as f:
-            return f.read().strip()
-    except:
-        return st.secrets.get("GOOGLE_API_KEY", "")
+    return st.secrets.get("GEMINI_API_KEY", "")
 
 def get_pokeapi_data(name):
     try:
@@ -87,31 +83,52 @@ def get_pokeapi_data(name):
 
 def identify_pokemon_ia(image, api_key):
     if not api_key:
-        return {"error": "no_key", "message": "Falta la API Key de Google"}
+        return {"error": "no_key", "message": "Falta la API Key de Google. Configúrala en .streamlit/secrets.toml"}
     
     genai.configure(api_key=api_key)
-    models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash']
+    # Modelos disponibles para tareas de visión. gemini-pro-vision es recomendado.
+    # Los modelos 'gemini-1.5-flash' y 'gemini-2.0-flash' pueden no ser válidos o estar en la cuota gratuita.
+    models = ['gemini-pro-vision', 'gemini-2.0-flash-lite', 'gemini-2.5-flash'] 
     
-    image.thumbnail((400, 400))
+    # Reducir el tamaño de la imagen para optimizar el envío a la API
+    image.thumbnail((600, 600)) # Un poco más grande para mantener detalle
     img_byte_arr = io.BytesIO()
-    image.save(img_byte_arr, format='JPEG')
+    image.save(img_byte_arr, format='JPEG', quality=75) # Aumentar calidad a 75
     img_bytes = img_byte_arr.getvalue()
     
     for m in models:
         try:
+            # Verificar si el modelo es realmente accesible antes de usarlo si es necesario
+            # (Para este caso, asumimos que los nombres listados son los correctos a intentar)
             model = genai.GenerativeModel(m)
             response = model.generate_content([SYSTEM_PROMPT, {"mime_type": "image/jpeg", "data": img_bytes}])
+            
             if response.text:
                 clean_text = response.text.replace('```json', '').replace('```', '').strip()
-                return json.loads(clean_text)
+                try:
+                    json_response = json.loads(clean_text)
+                    # Si la IA dice que no es un Pokémon, pasamos ese error directamente
+                    if "error" in json_response and json_response["error"] == "no_pokemon":
+                        return json_response
+                    return json_response
+                except json.JSONDecodeError:
+                    print(f"Error: La respuesta de la IA no es un JSON válido: {clean_text}")
+                    continue # Intentar con el siguiente modelo si la respuesta no es JSON
         except Exception as e:
-            continue
-    return {"error": "fail", "message": "No se pudo identificar el Pokémon"}
+            # Manejo específico para errores de cuota
+            if 'quota' in str(e).lower() or 'exceeded' in str(e).lower():
+                print(f"Error de cuota o acceso con el modelo {m}: {e}")
+                print("Por favor, revisa la configuración de facturación de tu proyecto en Google Cloud.")
+                # Si es un error de cuota, es probable que todos los modelos gratuitos fallen, pero continuamos por si acaso.
+            else:
+                print(f"Error genérico con el modelo {m}: {e}")
+            continue # Intentar con el siguiente modelo
+    return {"error": "fail", "message": "No se pudo identificar el Pokémon después de probar todos los modelos disponibles. Revisa los logs para más detalles."}
 
 def text_to_speech(data, fun_fact):
     tipos_es = [TYPE_TRANSLATIONS.get(t, t) for t in data['types']]
     evos = f"Evoluciona en {', '.join(data['evolutions'][1:])}." if len(data['evolutions']) > 1 else "No tiene evoluciones."
-    text = f"{data['name']}. Pokémon {data['category']}. Tipo {' y '.join(tipos_es)}. Mide {data['height']} metros. {fun_fact}. {evos}"
+    text = f"{data['name']}. Pokémon {data['category']}. Tipo {', '.join(tipos_es)}. Mide {data['height']} metros. {fun_fact}. {evos}"
     try:
         tts = gTTS(text=text, lang='es')
         fp = io.BytesIO()
@@ -125,3 +142,4 @@ def autoplay_audio(audio_fp):
     b64 = base64.b64encode(audio_bytes).decode()
     md = f'<audio autoplay="true"><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>'
     st.markdown(md, unsafe_allow_html=True)
+
