@@ -10,7 +10,16 @@ from google.api_core import exceptions
 from gtts import gTTS
 
 # --- Configuración de Versión ---
-APP_VERSION = "2026.04.003"
+APP_VERSION = "2026.04.004"
+
+# --- Traducción de Tipos al Español ---
+TYPE_TRANSLATIONS = {
+    "normal": "Normal", "fire": "Fuego", "water": "Agua", "electric": "Eléctrico",
+    "grass": "Planta", "ice": "Hielo", "fighting": "Lucha", "poison": "Veneno",
+    "ground": "Tierra", "flying": "Volador", "psychic": "Psíquico", "bug": "Bicho",
+    "rock": "Roca", "ghost": "Fantasma", "dragon": "Dragón", "dark": "Siniestro",
+    "steel": "Acero", "fairy": "Hada", "desconocido": "Desconocido"
+}
 
 # --- Configuración de la Página ---
 st.set_page_config(page_title="Pokedex IA Master", page_icon="🎴", layout="wide")
@@ -152,8 +161,12 @@ def get_pokeapi_full_data(name):
     except: return None
 
 def text_to_speech_full(data, fun_fact):
-    evos = f"Evoluciona en {', '.join(data['evolutions'][1:])}." if len(data['evolutions']) > 1 else "No tiene evoluciones."
-    text = f"{data['name']}. Tipo {', '.join(data['types'])}. {data['height']} metros. {fun_fact}. {evos}"
+    # Traducimos los tipos para que se lean correctamente en español
+    tipos_es = [TYPE_TRANSLATIONS.get(t, t) for t in data['types']]
+    tipos_str = " y ".join(tipos_es)
+    
+    evos = f"Evoluciona en {', '.join(data['evolutions'][1:])}." if len(data['evolutions']) > 1 else "No tiene evoluciones conocidas."
+    text = f"{data['name']}. Es un Pokémon de tipo {tipos_str}. Mide {data['height']} metros. {fun_fact}. {evos}"
     try:
         tts = gTTS(text=text, lang='es')
         fp = io.BytesIO()
