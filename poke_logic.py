@@ -12,8 +12,8 @@ import os
 # --- Lógica de Sincronización ---
 def deploy_to_github():
     try:
-        # El script está en el directorio padre de pokedex_v2
-        sync_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "sync.ps1"))
+        # El script está en el mismo directorio ahora
+        sync_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "sync.ps1"))
         if not os.path.exists(sync_script):
              return "Error: No se encontró el script de sincronización."
              
